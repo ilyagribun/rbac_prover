@@ -6,6 +6,7 @@ import Control.Applicative (liftA2)
 class BooleanAlgebra a where
     algebraAnd :: a -> a -> a
     algebraOr :: a -> a -> a
+    algebraNot :: a -> a
     empty :: a
 
 newtype BooleanMatrix a = BooleanMatrix { matrix :: [[a]] }
@@ -34,3 +35,27 @@ matrixProduct (BooleanMatrix m1) (BooleanMatrix m2) =
 
 sumMatrix :: (BooleanAlgebra a) => BooleanMatrix a -> BooleanMatrix a -> BooleanMatrix a
 sumMatrix = liftA2 algebraOr
+
+shape :: BooleanMatrix a -> Int
+shape (BooleanMatrix m) = length m
+
+clojure' :: (BooleanAlgebra a) => BooleanMatrix a -> BooleanMatrix a -> Int -> BooleanMatrix a
+clojure' res _ 0 = res
+clojure' res m n = clojure' (sumMatrix (matrixProduct res m) res) m (n - 1)
+
+clojure :: (BooleanAlgebra a) => BooleanMatrix a -> BooleanMatrix a
+clojure m = clojure' m m (shape m)
+
+data TrivialAlgebra = T | F
+instance Show TrivialAlgebra where
+    show T = "1"
+    show F = "0"
+
+instance BooleanAlgebra TrivialAlgebra where
+    algebraAnd T T = T
+    algebraAnd _ _ = F
+    algebraOr F F = F
+    algebraOr _ _ = T
+    algebraNot F = T
+    algebraNot T = F
+    empty = F
