@@ -39,12 +39,12 @@ sumMatrix = liftA2 algebraOr
 shape :: BooleanMatrix a -> Int
 shape (BooleanMatrix m) = length m
 
-clojure' :: (BooleanAlgebra a) => BooleanMatrix a -> BooleanMatrix a -> Int -> BooleanMatrix a
-clojure' res _ 0 = res
-clojure' res m n = clojure' (sumMatrix (matrixProduct res m) res) m (n - 1)
+closure' :: (BooleanAlgebra a) => BooleanMatrix a -> BooleanMatrix a -> Int -> BooleanMatrix a
+closure' res _ 0 = res
+closure' res m n = closure' (sumMatrix (matrixProduct res m) res) m (n - 1)
 
-clojure :: (BooleanAlgebra a) => BooleanMatrix a -> BooleanMatrix a
-clojure m = clojure' m m (shape m)
+closure :: (BooleanAlgebra a) => BooleanMatrix a -> BooleanMatrix a
+closure m = closure' m m (shape m)
 
 data TrivialAlgebra = T | F
 instance Show TrivialAlgebra where
@@ -59,3 +59,11 @@ instance BooleanAlgebra TrivialAlgebra where
     algebraNot F = T
     algebraNot T = F
     empty = F
+
+
+floydWarshallClosure :: (BooleanAlgebra a) => BooleanMatrix a -> BooleanMatrix a
+floydWarshallClosure m@(BooleanMatrix matrix) = BooleanMatrix (foldl updateMatrix matrix [0..n-1]) where
+    n = shape m
+    updateMatrix mtx k = [[updateElement i j k | j <- [0..n-1]] | i <- [0..n-1]] 
+      where
+        updateElement i j k = (mtx !! i !! j) `algebraOr` ((mtx !! i !! k) `algebraAnd` ( mtx !! k !! j))
