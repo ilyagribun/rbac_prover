@@ -2,8 +2,6 @@
 
 module BooleanMatrix where
 
-import Data.List (intercalate)
-
 import Data.Vector (Vector, (!), length, generate)
 
 import Algebra.Lattice
