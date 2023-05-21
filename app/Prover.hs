@@ -10,10 +10,6 @@ data ProofTree = Ax Sequent
     | Unary {bottom :: Sequent, top :: Maybe ProofTree}
     | Binary {bottom :: Sequent, left :: Maybe ProofTree, right :: Maybe ProofTree}
 
-instance Show ProofTree where
-    show (Ax a) = show a
-    show (Unary bot top) = (show bot) ++ "\n" ++ (show top)
-
 isAxiom :: Sequent -> Bool
 isAxiom (Sequent left right) = (not . HS.null) $ HS.intersection left right
 
@@ -25,7 +21,7 @@ partition pred hashSet = (sat, notSat) where
 prove :: Sequent -> Maybe ProofTree
 prove seq@(Sequent left right)
     | isAxiom seq || (HS.null left && HS.null right) = Just (Ax seq)
-    | any isNot left || any isNot right = Just $ Unary seq (prove $ Sequent (HS.union leftWONots (HS.map dropNot rightNots)) (HS.union rightWONots (HS.map dropNot leftNots)))
+    | any isNot left || any isNot right = Just $ Unary seq (prove $ Sequent (leftWONots <> HS.map dropNot rightNots) (HS.union rightWONots (HS.map dropNot leftNots)))
     | any isAnd left || any isOr right = Just $ Unary seq (prove $ Sequent (HS.union leftWOAnds leftDropAnds) (HS.union rightWOOrs rightDropOrs))
     | any isOr left =       -- Gamma, (p1 v p2) |- Delta => (Gamma, p1 |- Delta), (Gamma, p2 |- Delta)
             let (phi: _) = HS.toList leftOrs in
